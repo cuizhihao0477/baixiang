@@ -1,0 +1,34 @@
+from scipy.integrate import odeint
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+df = pd.DataFrame(columns=['x1','x2','x3','y1','y2','y3','sigma','r','b','alpha','delta1','delta2','delta3'])
+
+alpha = 1e-3
+t = np.arange(0, 300, 0.01)
+
+def lorenz(w,t,sigma,r,b):
+    x1,x2,x3,y1,y2,y3 = w
+    return np.array([-sigma*x1+sigma*x2, r*x1-x2-x1*x3, x1*x2-b*x3,\
+                     -sigma*y1+sigma*x2*(1+alpha), r*y1-y2-y1*y3, y1*y2-b*y3])
+
+def func1(args=[99,28,3], x0=[0.0,0.1,0.0], y0=[40.0,50.0,10.0]):
+    
+    track = odeint(lorenz,(x0[0],x0[1],x0[2],y0[0],y0[1],y0[2]),t,args=(args[0], args[1], args[2]))
+    delta1 = track[:,0] - track[:,3]
+    delta2 = track[:,1] - track[:,4]
+    delta3 = track[:,2] - track[:,5]
+    plt.plot(delta3)
+    plt.show()
+    new_df = pd.DataFrame({'x1':x0[0],'x2':x0[1],'x3':x0[2],\
+                           'y1':y0[0],'y2':y0[1],'y3':y0[2],\
+                           'sigma':args[0],'r':args[1],'b':args[2],\
+                           'alpha':alpha,\
+                           'delta1':[delta1[-100:]],'delta2':[delta2[-100:]],'delta3':[delta3[-100:]]})
+    global df
+    df = df.append(new_df)
+
+func1()
+print(df)
+df.to_csv('test.csv')
